@@ -33,6 +33,7 @@ Others      :
 #define BUFF_LOCAL 1
 #define BUFF_NWK   2
 
+#define TEMP_BUFF_SIZE 100
 
 typedef unsigned short (* pTaskHandlerFn)(unsigned char ucTaskID,unsigned short usEvent);
 
@@ -102,6 +103,7 @@ static void Module_Init(void)
 {
     EVL_Board_Init();
     Task_Init();
+    BuffPool_Init();
     GPRS_Init();    
     GPS_Init();
 }
@@ -190,6 +192,7 @@ static void System_Run(void)
 static unsigned short Task_Heart(unsigned char ucTaskID,unsigned short usEvent)
 {
     unsigned char ucStartAddr = 0;
+    unsigned char aucTempBuff[TEMP_BUFF_SIZE];
     switch(usEvent)
     {
         case EVENT_LOCALDATA:
@@ -333,6 +336,7 @@ static void Task_DataRouter3_Init(unsigned char taskID)
 *********************************************************************/
 static unsigned char Read_Buff(unsigned char buffType,unsigned char *pucStartAddr,unsigned char *pucLen)
 {
+    unsigned char len;
     if((buffType != BUFF_LOCAL)||(buffType != BUFF_NWK))
     {
         return 1;
@@ -343,7 +347,33 @@ static unsigned char Read_Buff(unsigned char buffType,unsigned char *pucStartAdd
     }
     if(BUFF_LOCAL == buffType)
     {
-        
+        len = pLOCALBuffHdr->hdr.len
+        if(0 == len)
+        {
+            return 1;
+        }
+        else
+        {
+            *pucLen = len;
+            memcpy(pucStartAddr,pLOCALBuffHdr+1,len);
+            memset(pLOCALBuffHdr+1,0,len);
+            pLOCALBuffHdr->hdr.len = 0;
+        }
+    }
+    else
+    {
+        len = pNWKBuffHdr->hdr.len
+        if(0 == len)
+        {
+            return 1;
+        }
+        else
+        {
+            *pucLen = len;
+            memcpy(pucStartAddr,pNWKBuffHdr+1,len);
+            memset(pNWKBuffHdr+1,0,len);
+            pNWKBuffHdr->hdr.len = 0;
+        }        
     }
     return 0;
 }

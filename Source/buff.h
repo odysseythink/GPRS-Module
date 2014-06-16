@@ -31,14 +31,16 @@ extern "C"{
 /*================================================================*/
 /*                          @INCLUDES                             */
 /*================================================================*/
-#include "app_cfg.h"
+#include "includes.h"
 
 /*================================================================*/
 /*                           @MACROS                              */
 /*================================================================*/
+#define BUFFPOOLMAX_SIZE 128
+
 #define BuffHdr_SZ sizeof(BuffHdr_t)
-#define BUFFPOOL_SZ (BuffHdr_SZ * BUFFPOOL_SIZE)
-#define BUFF_USED    1
+#define BUFFPOOL_SZ (BuffHdr_SZ * BUFFPOOLMAX_SIZE)
+#define BUFF_INUSED  1
 #define BUFF_NOTUSED 0
 
 /*================================================================*/
@@ -59,20 +61,22 @@ typedef union{
 /*================================================================*/
 /*                      @GLOBAL VAVIABLES                         */
 /*================================================================*/
-BUFF_EXT BuffHdr_t gUART1BuffPool[BUFFPOOL_SIZE];
-BUFF_EXT BuffHdr_t *pUART1FFL;/* 指向当前存放数据处 */
-BUFF_EXT BuffHdr_t pUART1BuffHdr;
+BUFF_EXT BuffHdr_t gLOCALBuffPool[BUFFPOOL_SIZE];
+BUFF_EXT BuffHdr_t *pLOCALBuffHdr;
 
-BUFF_EXT BuffHdr_t gUART2BuffPool[BUFFPOOL_SIZE];
-BUFF_EXT BuffHdr_t *pUART2FFL;/* 指向当前存放数据处 */
-BUFF_EXT BuffHdr_t pUART2BuffHdr;
+BUFF_EXT BuffHdr_t gNWKBuffPool[BUFFPOOL_SIZE];
+BUFF_EXT BuffHdr_t *pNWKBuffHdr;
 
 
 
 /*================================================================*/
 /*                           @FUNCS                               */
 /*================================================================*/
-extern void BuffPool_Init(void);
+void BuffPool_Init(void);
+void LocalBuffPool_It(unsigned char ucData);
+void NWKBuffPool_It(unsigned char ucData);    
+
+
 
 #ifdef __cplusplus
 }

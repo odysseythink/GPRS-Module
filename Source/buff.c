@@ -30,14 +30,49 @@ Others      :
 *********************************************************************/
 void BuffPool_Init(void)
 {
-    gUART1BuffPool->hdr.len = BUFFPOOL_SZ;
-    gUART1BuffPool->hdr.inUse = BUFF_NOTUSED; 
-	pUART1FFL = gUART1BuffPool;
+    pLOCALBuffHdr = gLOCALBuffPool;
+    pLOCALBuffHdr->hdr.len = 0;
+    pLOCALBuffHdr->hdr.inUse = BUFF_INUSED; 
     
+    pNWKBuffHdr = gNWKBuffPool;
+	pNWKBuffHdr->hdr.len = 0;
+    pNWKBuffHdr->hdr.inUse = BUFF_INUSED; 
+}
 
-	gUART2BuffPool->hdr.len = BUFFPOOL_SZ;
-    gUART2BuffPool->hdr.inUse = BUFF_NOTUSED; 
-	pUART2FFL = (BuffHdr_t *)0;
+/*********************************************************************
+** @fn     : 
+**
+** @brief  : 
+**
+** @param  :
+**
+** @return :
+*********************************************************************/
+void LocalBuffPool_It(unsigned char ucData)
+{
+    if(pLOCALBuffHdr->hdr.len < (BUFFPOOL_SZ-1))
+    {
+        gLOCALBuffPool[1+pLOCALBuffHdr->hdr.len] = ucData;
+        pLOCALBuffHdr->hdr.len++;
+    }
+}
+
+/*********************************************************************
+** @fn     : 
+**
+** @brief  : 
+**
+** @param  :
+**
+** @return :
+*********************************************************************/
+void NWKBuffPool_It(unsigned char ucData)
+{
+    if(pNWKBuffHdr->hdr.len < (BUFFPOOL_SZ-1))
+    {
+        gNWKBuffPool[1+pLOCALBuffHdr->hdr.len] = ucData;
+        pNWKBuffHdr->hdr.len++; 
+    }
 }
 
 

@@ -35,7 +35,7 @@ extern "C"{
 #include "gprs.h"
 #include "gps.h"
 #include "it.h"
-
+#include "buff.h"
 
 #ifdef __cplusplus
 }
