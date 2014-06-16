@@ -341,6 +341,10 @@ static unsigned char Read_Buff(unsigned char buffType,unsigned char *pucStartAdd
     {
         return 1;
     }
+    if(BUFF_LOCAL == buffType)
+    {
+        
+    }
     return 0;
 }
 
