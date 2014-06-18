@@ -29,6 +29,7 @@ Others      :
 #define EVENT_GPS_ACTIVE          0x0008
 #define EVENT_GPRS_CFG            0x0010
 #define EVENT_GPRS_NWK_CONNECTING 0x0020
+#define EVENT_REV_DATA            0x0040
 
 #define DATA_GPS_REQUEST     1
 #define DATA_GPRS_CFG        2   
@@ -217,7 +218,7 @@ static u16_t Task_Heart(u8_t ucTaskID,u16_t usEvent)
     u8_t ucStartAddr = 0;
     u8_t aucTempBuff[TEMP_BUFF_SIZE];
     u8_t ucLen;
-    u8_t flag;
+    u8_t flag = 0;
     switch(usEvent)
     {
         case EVENT_LOCALDATA:
@@ -225,6 +226,7 @@ static u16_t Task_Heart(u8_t ucTaskID,u16_t usEvent)
             flag = Data_Filter(aucTempBuff,ucLen);
             break;
         case EVENT_NWKDATA:
+            SET_TASK_EVENT(g_ucTaskGPRSID,EVENT_REV_DATA)
             break;
         default:
             break;
@@ -244,6 +246,55 @@ static u16_t Task_Heart(u8_t ucTaskID,u16_t usEvent)
         default:
             break;
     }
+    if(GPRS_NWK_TCP == g_gprsCB.ucNWKStatus)
+    {
+        SET_TASK_EVENT(g_ucTaskGPRSID,EVENT_PANG);
+    }
+}
+
+
+
+/*********************************************************************
+** @fn     : 
+**
+** @brief  : 
+**
+** @param  :
+**
+** @return :
+*********************************************************************/
+static u16_t Task_GRRS(u8_t ucTaskID,u16_t usEvent)
+{
+    if(usEvent & EVENT_GPRS_CFG)
+    {
+        GPRS_Module_Reset();
+        GPRS_Connect_NWK();
+        CLR_TASK_EVENT(g_ucTaskGPRSID,EVENT_GPRS_CFG);
+        SET_TASK_EVENT(g_ucTaskGPRSID,EVENT_GPRS_NWK_CONNECTING);
+        g_gprsCB.ucNWKStatus = GPRS_NWK_CONNECTING;
+        g_gprsCB.ucConnectingStage = EN_STAGE_AT;
+    }
+    else if(usEvent & EVENT_GPRS_NWK_CONNECTING)
+    {
+        if(GPRS_NWK_CONNECTING == g_gprsCB.ucNWKStatus)
+        {
+            GPRS_Connect_NWK();
+        }
+        else
+        {
+            CLR_TASK_EVENT(g_ucTaskGPRSID,EVENT_GPRS_NWK_CONNECTING);
+            g_gprsCB.ucNWKStatus = GPRS_NWK_NO;
+        }
+    }
+    else if(usEvent & EVENT_PANG)/* ÐÄÌø°ü */
+    {
+        GPRS_TCP_Pang();
+    }
+    else if(usEvent & EVENT_REV_DATA)
+    {
+        Hand_NWK_Data();
+    }
+    
 }
 
 /*********************************************************************
@@ -286,26 +337,6 @@ static u8_t Data_Filter(u8_t **ppucData,u8_t ucLen)
     return DATA_NET_FRAME;
 }
 
-/*********************************************************************
-** @fn     : 
-**
-** @brief  : 
-**
-** @param  :
-**
-** @return :
-*********************************************************************/
-static u16_t Task_GRRS(u8_t ucTaskID,u16_t usEvent)
-{
-    if(usEvent & EVENT_GPRS_CFG)
-    {
-        GPRS_Module_Reset();
-        GPRS_Connect_NWK();
-        CLR_TASK_EVENT(g_ucTaskGPRSID,EVENT_GPRS_CFG);
-        SET_TASK_EVENT(g_ucTaskGPRSID,EVENT_GPRS_NWK_CONNECTING);
-    }
-    
-}
 
 /*********************************************************************
 ** @fn     : 
@@ -516,4 +547,23 @@ static u8_t Send_Data(u8_t ucRouterType,u8_t *pucData,u8_t ucLen)
     }
     return SEND_STAT_OK;
 }
+
+/*********************************************************************
+** @fn     : 
+**
+** @brief  : 
+**
+** @param  :
+**
+** @return :
+*********************************************************************/
+void Hand_NWK_Data(void)
+{
+    u8_t aucTempBuff[TEMP_BUFF_SIZE];
+    u8_t ucLen;
+
+    Read_Buff(BUFF_NWK,aucTempBuff,&ucLen);
+    Send_Data(ROUTER_LOCAL,aucTempBuff,ucLen);
+}
+
 

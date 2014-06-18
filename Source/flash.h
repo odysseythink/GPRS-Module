@@ -36,7 +36,9 @@ extern "C"{
 /*================================================================*/
 /*                           @MACROS                              */
 /*================================================================*/
-#define FLASH_NET_ADDR
+#define FLASH_CONNECT_TYPE_ADDR
+#define FLASH_IP_ADDR
+#define FLASH_SERVER_PORT_ADDR
 
 /*================================================================*/
 /*                         @TYPEDEFS                              */
@@ -46,6 +48,11 @@ extern "C"{
 /*                           @FUNCS                               */
 /*================================================================*/
 void Flash_Save(u32_t addr,u8_t *pucData,u16_t ucLen);
+void Flash_Save_NetConnectType(u32_t addr,u8_t *pucData,u16_t ucLen);
+void Flash_Save_IPAddr(u32_t addr,u8_t *pucData,u16_t ucLen);
+void Flash_Save_ServerPort(u32_t addr,u8_t *pucData,u16_t ucLen);
+
+
 
 
 #ifdef __cplusplus

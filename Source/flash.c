@@ -34,4 +34,48 @@ void Flash_Save(u32_t addr,u8_t *pucData,u16_t ucLen)
 {
 }
 
+/*********************************************************************
+** @fn     : 
+**
+** @brief  : 
+**
+** @param  :
+**
+** @return :
+*********************************************************************/
+void Flash_Save_NetConnectType(u32_t addr,u8_t *pucData,u16_t ucLen)
+{
+    Flash_Save(addr,pucData,ucLen);
+}
+
+/*********************************************************************
+** @fn     : 
+**
+** @brief  : 
+**
+** @param  :
+**
+** @return :
+*********************************************************************/
+void Flash_Save_IPAddr(u32_t addr,u8_t *pucData,u16_t ucLen)
+{
+    Flash_Save(addr,pucData,ucLen);
+}
+
+/*********************************************************************
+** @fn     : 
+**
+** @brief  : 
+**
+** @param  :
+**
+** @return :
+*********************************************************************/
+void Flash_Save_ServerPort(u32_t addr,u8_t *pucData,u16_t ucLen)
+{
+    Flash_Save(addr,pucData,ucLen);
+}
+
+
+
 

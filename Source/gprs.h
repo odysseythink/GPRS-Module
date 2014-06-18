@@ -51,6 +51,13 @@ extern "C"{
 #define EN_TIMEOUT_NO    1
 #define EN_TIMEOUT_OK    2
 
+enum{
+    GPRS_NWK_NO,
+    GPRS_NWK_CONNECTING,
+    GPRS_NWK_TCP, 
+    GPRS_NWK_UDP
+};
+
 /* 请求 */
 enum{
     GSMDRV_REQUEST_AT = 1,                      /* AT */
@@ -127,7 +134,8 @@ enum{
 /*                         @TYPEDEFS                              */
 /*================================================================*/
 typedef enum{
-    EN_STAGE_AT = 1,
+    EN_STAGE_INIT,
+    EN_STAGE_AT,
     EN_STAGE_CPIN,
     EN_STAGE_CSQ,
     EN_STAGE_CREG,
@@ -149,20 +157,25 @@ typedef struct{
 }Signal_t;
 
 typedef struct{
+    bool ucTCPPangFlag; /* 是否有需要TCP心跳 */
+    GSM_TimeoutNode_t timeoutNode;
+}TCPPang_str_t;
+
+typedef struct{
     u8_t ucNWKStatus;
     GSM_TimeoutNode_t timeoutNode;
     Signal_t signal;
+    u8_t aucConnectType[6];
+    u8_t aucIpAddr[16];
+    u8_t aucServerPort[6];
+    u8_t ucConnectingStage;
+    TCPPang_str_t tcpPang;
 }GPRS_CB_t;
 
 
 /*================================================================*/
 /*                      @GLOBAL VARIABLES                         */
 /*================================================================*/
-
-GPRS_EXT u8_t g_aucNETEnv[3][20];
-GPRS_EXT NWK_Connect_Stage_t g_ConnectStage;
-GPRS_EXT GSM_TimeoutNode_t g_TimeoutNode;
-GPRS_EXT Signal_t signal;
 GPRS_EXT GPRS_CB_t g_gprsCB;
 
 /*================================================================*/

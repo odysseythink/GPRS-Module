@@ -48,15 +48,19 @@ static const unsigned char * GSM_FinalResponsesError[] = {
 *********************************************************************/
 void GPRS_Init(void)
 {
-    memset(g_aucNETEnv,0,sizeof(60));
-    strcpy(g_aucNETEnv[0],"\"UDP\"");
-    strcpy(g_aucNETEnv[1],"\"255.255.255.255\"");
-    strcpy(g_aucNETEnv[2],"65535");
-    g_ConnectStage = EN_STAGE_AT;
-    g_TimeoutNode.ulTimeout = 0;
-    g_TimeoutNode.ucTimeoutFlag = 0;
-    signal.ucBer = 0;
-    signal.ucRssi = 0;
+    memset(g_gprsCB,0,sizeof(g_gprsCB));
+    strcpy(g_gprsCB.aucConnectType,"\"UDP\"");
+    strcpy(g_gprsCB.aucIpAddr,"\"255.255.255.255\"");
+    strcpy(g_gprsCB.aucServerPort,"65535");
+    g_gprsCB.ucNWKStatus = GPRS_NWK_NO;
+    g_gprsCB.signal.ucBer = 0;
+    g_gprsCB.signal.ucRssi = 0;
+    g_gprsCB.timeoutNode.ulTimeout = 0;
+    g_gprsCB.timeoutNode.ucTimeoutFlag = EN_TIMEOUT_INIT;
+    g_gprsCB.ucConnectingStage = EN_STAGE_INIT;
+    g_gprsCB.tcpPang.ucTCPPangFlag = FALSE;
+    g_gprsCB.tcpPang.timeoutNode.ucTimeoutFlag = EN_TIMEOUT_INIT;
+    g_gprsCB.tcpPang.timeoutNode.ulTimeout = 0;
 }
 
 /*********************************************************************
@@ -115,11 +119,11 @@ u8_t Get_NWK_Info(u8_t *pucData,u8_t ucLen)
         {
             if(strncpy(p,"\"TCP\"",5))
             {
-                strcpy(g_aucNETEnv[0],"\"TCP\"");
+                strcpy(g_gprsCB.aucConnectType,"\"TCP\"");
             }
             else if(strncpy(p,"\"UDP\"",5))
             {
-                strcpy(g_aucNETEnv[0],"\"UDP\"");
+                strcpy(g_gprsCB.aucConnectType,"\"UDP\"");
             }
             else
             {
@@ -135,7 +139,7 @@ u8_t Get_NWK_Info(u8_t *pucData,u8_t ucLen)
         {
             if(IS_IP_Addr(&aucBuff[aucCommaAddr[0]+2],aucCommaAddr[1]-aucCommaAddr[0]-1-2)
             {
-                strncpy(g_aucNETEnv[1],&aucBuff[aucCommaAddr[0]+1],aucCommaAddr[1]-aucCommaAddr[0]-1);
+                strncpy(g_gprsCB.aucIpAddr,&aucBuff[aucCommaAddr[0]+1],aucCommaAddr[1]-aucCommaAddr[0]-1);
             }
             else
             {
@@ -153,7 +157,7 @@ u8_t Get_NWK_Info(u8_t *pucData,u8_t ucLen)
         }
         else
         {
-            strncpy(g_aucNETEnv[2],&aucBuff[aucCommaAddr[1]+1],ucLen - aucCommaAddr[1] - 1);
+            strncpy(g_gprsCB.aucServerPort,&aucBuff[aucCommaAddr[1]+1],ucLen - aucCommaAddr[1] - 1);
         }
         Save_NETEnv();
         return ERRO_CFGINFO_NONE;
@@ -229,7 +233,9 @@ u8_t IS_IP_Addr(u8_t *pucData,u8_t ucLen)
 *********************************************************************/
 void Save_NETEnv(void)
 {
-    Flash_Save(FLASH_NET_ADDR,);
+    Flash_Save_NetConnectType(FLASH_CONNECT_TYPE_ADDR,g_gprsCB.aucConnectType,strlen(g_gprsCB.aucConnectType));
+    Flash_Save_IPAddr(FLASH_IP_ADDR,g_gprsCB.aucIpAddr,strlen(g_gprsCB.aucIpAddr));    
+    Flash_Save_ServerPort(FLASH_CONNECT_TYPE_ADDR,g_gprsCB.aucServerPort,strlen(g_gprsCB.aucServerPort));
 }
 
 /*********************************************************************
@@ -263,17 +269,17 @@ void GPRS_Connect_NWK(void)
     u8_t ucResult;
     usLen = 0;
 
-    if(g_TimeoutNode.ucTimeoutFlag != EN_TIMEOUT_INIT)
+    if(g_gprsCB.timeoutNode.ucTimeoutFlag != EN_TIMEOUT_INIT)
     {
-        if(OS_Get_SysTimeTick() >= g_TimeoutNode.ulTimeout)
+        if(OS_Get_SysTimeTick() >= g_gprsCB.timeoutNode.ulTimeout)
         {
-            g_TimeoutNode.ucTimeoutFlag = EN_TIMEOUT_OK;
+            g_gprsCB.timeoutNode.ucTimeoutFlag = EN_TIMEOUT_OK;
         }
     }
     
-    if(EN_STAGE_AT == g_ConnectStage)
+    if(EN_STAGE_AT == g_gprsCB.ucConnectingStage)
     {
-        switch(g_TimeoutNode.ucTimeoutFlag)
+        switch(g_gprsCB.timeoutNode.ucTimeoutFlag)
         {
             case EN_TIMEOUT_INIT:
                 GSM_AddReq(GSMDRV_REQUEST_AT,(unsigned char *)0,&usLen);
@@ -284,8 +290,8 @@ void GPRS_Connect_NWK(void)
             case EN_TIMEOUT_NO:
                 break;
             case EN_TIMEOUT_OK:
-                g_TimeoutNode.ulTimeout = 0;
-                g_TimeoutNode.ucTimeoutFlag = EN_TIMEOUT_INIT;
+                g_gprsCB.timeoutNode.ulTimeout = 0;
+                g_gprsCB.timeoutNode.ucTimeoutFlag = EN_TIMEOUT_INIT;
                 if(SUCCESS == Read_Buff(BUFF_NWK,aucBuff,&ucLen))
                 {
                     for(p = aucBuff;p != NULL;q = strsep((char **)&p,"\r\n"))
@@ -295,33 +301,31 @@ void GPRS_Connect_NWK(void)
                         GSM_Reponse_Proc((unsigned char *)q,&ucResult);
                         if(ucResult != EN_RESULT_BUTT)
                         {
-                            g_ConnectStage = EN_STAGE_CPIN;
+                            g_gprsCB.ucConnectingStage = EN_STAGE_CPIN;
                             break;
                         }
                     }
-                }
-                
+                }            
                 break;  
              default:
                 break;
         }  
     }
-    else if(EN_STAGE_CPIN)
+    else if(EN_STAGE_CPIN == g_gprsCB.ucConnectingStage)
     {
-        switch(g_TimeoutNode.ucTimeoutFlag)
+        switch(g_gprsCB.timeoutNode.ucTimeoutFlag)
         {
             case EN_TIMEOUT_INIT:
                 GSM_AddReq(GSMDRV_REQUEST_GET_SIM_STATUS,(unsigned char *)0,&ucLen);
                 GSM_AddReq(GSMDRV_REQUEST_GET_SIM_STATUS,NULL,&ucLen);
                 GSM_SetTimeout(ucLen);
                 memset(aucBuff,0,sizeof(aucBuff));
-                g_TimeoutNode.ucTimeoutFlag = EN_TIMEOUT_NO;
                 break;
             case EN_TIMEOUT_NO:
                 break;
             case EN_TIMEOUT_OK:
-                g_TimeoutNode.ulTimeout = 0;
-                g_TimeoutNode.ucTimeoutFlag = EN_TIMEOUT_INIT;
+                g_gprsCB.timeoutNode.ulTimeout = 0;
+                g_gprsCB.timeoutNode.ucTimeoutFlag = EN_TIMEOUT_INIT;
                 
                 if(SUCCESS == Read_Buff(BUFF_NWK,aucBuff,&ucLen))
                 {
@@ -338,20 +342,358 @@ void GPRS_Connect_NWK(void)
                     }
                     if(EN_RESULT_WAIT_SIM_STATUS_OK == ucResult)
                     {
-                        g_ConnectStage= EN_STAGE_CSQ;
+                        g_gprsCB.ucConnectingStage = EN_STAGE_CSQ;
                     }
                     else
                     {
-                        g_ConnectStage = GSM_MODULE_NET_CONNECT_FAILD;
+                        g_gprsCB.ucNWKStatus = GPRS_NWK_NO;
+                        g_gprsCB.ucConnectingStage = EN_STAGE_INIT;
                     }
-                    g_ucGSMTimeoutFlag = EN_TIMEOUT_INIT;
                 }     
                 break;  
              default:
                 break;
         }        
     }
+    else if(EN_STAGE_CSQ == g_gprsCB.ucConnectingStage)
+    {
+        switch(g_gprsCB.timeoutNode.ucTimeoutFlag)
+        {
+            case EN_TIMEOUT_INIT:
+                GSM_AddReq(GSMDRV_REQUEST_GET_SQR,(unsigned char *)0,&ucLen);
+                GSM_AddReq(GSMDRV_REQUEST_GET_SQR,NULL,&ucLen);
+                GSM_SetTimeout(ucLen);
+                memset(aucBuff,0,sizeof(aucBuff));
+                break;
+            case EN_TIMEOUT_NO:
+                break;
+            case EN_TIMEOUT_OK:
+                g_gprsCB.timeoutNode.ulTimeout = 0;
+                g_gprsCB.timeoutNode.ucTimeoutFlag = EN_TIMEOUT_INIT;
+
+                if(SUCCESS == Read_Buff(BUFF_NWK,aucBuff,&ucLen))
+                {
+                    for(p = aucBuff;p != NULL;q = strsep((char **)&p,"\r\n"))
+                    {
+                        while(strstripstart(&q,'\r'));
+                        while(strstripstart(&q,'\n'));
+                        GSM_Reponse_Proc((unsigned char *)q,&ucResult);
+                        if(ucResult != EN_RESULT_BUTT)
+                        {
+                            break;
+                        }
+                    }
+                    if(EN_RESULT_CSQ_VALUE == ucResult)
+                    {
+                        g_gprsCB.ucConnectingStage = EN_STAGE_CREG;
+                    }                    
+                    else
+                    {
+                        g_gprsCB.ucNWKStatus = GPRS_NWK_NO;
+                        g_gprsCB.ucConnectingStage = EN_STAGE_INIT;
+                    }
+                }     
+                break;  
+             default:
+                break;
+        }
+    }   
+    else if(EN_STAGE_CREG == g_gprsCB.ucConnectingStage)
+    {
+        switch(g_gprsCB.timeoutNode.ucTimeoutFlag)
+        {
+            case EN_TIMEOUT_INIT:
+                GSM_AddReq(GSMDRV_REQUEST_REGISTRATION_STATE,(unsigned char *)0,&ucLen);
+                GSM_AddReq(GSMDRV_REQUEST_REGISTRATION_STATE,NULL,&ucLen);
+                GSM_SetTimeout(ucLen);
+                memset(aucBuff,0,sizeof(aucBuff));
+                break;
+            case EN_TIMEOUT_NO:
+                break;
+            case EN_TIMEOUT_OK:
+                g_gprsCB.timeoutNode.ulTimeout = 0;
+                g_gprsCB.timeoutNode.ucTimeoutFlag = EN_TIMEOUT_INIT;
+
+                if(SUCCESS == Read_Buff(BUFF_NWK,aucBuff,&ucLen))
+                {
+                    for(p = aucBuff;p != NULL;q = strsep((char **)&p,"\r\n"))
+                    {
+                        while(strstripstart(&q,'\r'));
+                        while(strstripstart(&q,'\n'));
+                        GSM_Reponse_Proc((unsigned char *)q,&ucResult);
+                        if(ucResult != EN_RESULT_BUTT)
+                        {
+                            break;
+                        }
+                    }
+
+                    if(EN_RESULT_CSQ_VALUE == ucResult)
+                    {
+                        g_gprsCB.ucConnectingStage = EN_STAGE_CGATT;
+                    }                    
+                    else
+                    {
+                        g_gprsCB.ucNWKStatus = GPRS_NWK_NO;
+                        g_gprsCB.ucConnectingStage = EN_STAGE_INIT;
+                    }
+                }     
+                break;  
+             default:
+                break;
+        }
+    }  
+    else if(EN_STAGE_CGATT == g_gprsCB.ucConnectingStage)
+    {
+        switch(g_gprsCB.timeoutNode.ucTimeoutFlag)
+        {
+            case EN_TIMEOUT_INIT:
+                GSM_AddReq(GSMDRV_REQUEST_GET_GRRS_STATE,(unsigned char *)0,&ucLen);
+                GSM_SetTimeout(ucLen);
+                memset(aucBuff,0,sizeof(aucBuff));
+                break;
+            case EN_TIMEOUT_NO:
+                break;
+            case EN_TIMEOUT_OK:
+                g_gprsCB.timeoutNode.ulTimeout = 0;
+                g_gprsCB.timeoutNode.ucTimeoutFlag = EN_TIMEOUT_INIT;
+
+                if(SUCCESS == Read_Buff(BUFF_NWK,aucBuff,&ucLen))
+                {
+                    for(p = aucBuff;p != NULL;q = strsep((char **)&p,"\r\n"))
+                    {
+                        while(strstripstart(&q,'\r'));
+                        while(strstripstart(&q,'\n'));
+                        GSM_Reponse_Proc((unsigned char *)q,&ucResult);
+                        if(ucResult != EN_RESULT_BUTT)
+                        {
+                            break;
+                        }
+                    }
+
+                    if(EN_RESULT_CSQ_VALUE == ucResult)
+                    {
+                        g_gprsCB.ucConnectingStage = EN_STAGE_CSTT;
+                    }                    
+                    else
+                    {
+                        g_gprsCB.ucNWKStatus = GPRS_NWK_NO;
+                        g_gprsCB.ucConnectingStage = EN_STAGE_INIT;
+                    }
+                }     
+                break;  
+             default:
+                break;
+        }
+    } 
+    else if(EN_STAGE_CSTT == g_gprsCB.ucConnectingStage)
+    {
+        switch(g_gprsCB.timeoutNode.ucTimeoutFlag)
+        {
+            case EN_TIMEOUT_INIT:
+                GSM_AddReq(GSMDRV_REQUEST_SET_APN,"\"CMNET\"",&ucLen);
+                GSM_AddReq(GSMDRV_REQUEST_GET_GRRS_STATE,NULL,&ucLen);
+                GSM_SetTimeout(ucLen);
+                memset(aucBuff,0,sizeof(aucBuff));
+                break;
+            case EN_TIMEOUT_NO:
+                break;
+            case EN_TIMEOUT_OK:
+                g_gprsCB.timeoutNode.ulTimeout = 0;
+                g_gprsCB.timeoutNode.ucTimeoutFlag = EN_TIMEOUT_INIT;
+
+                if(SUCCESS == Read_Buff(BUFF_NWK,aucBuff,&ucLen))
+                {
+                    for(p = aucBuff;p != NULL;q = strsep((char **)&p,"\r\n"))
+                    {
+                        while(strstripstart(&q,'\r'));
+                        while(strstripstart(&q,'\n'));
+                        GSM_Reponse_Proc((unsigned char *)q,&ucResult);
+                    }
+
+                    if(ucResult != EN_RESULT_BUTT)
+                    {
+                        g_gprsCB.ucConnectingStage = EN_STAGE_CIICR;
+                    }
+                    else
+                    {
+                        g_gprsCB.ucNWKStatus = GPRS_NWK_NO;
+                        g_gprsCB.ucConnectingStage = EN_STAGE_INIT;
+                    }
+                }     
+                break;  
+             default:
+                break;
+        }
+    }   
+    else if(EN_STAGE_CIICR == g_gprsCB.ucConnectingStage)
+    {
+        switch(g_gprsCB.timeoutNode.ucTimeoutFlag)
+        {
+            case EN_TIMEOUT_INIT:
+                GSM_AddReq(GSMDRV_REQUEST_SET_MOBILE_ENV,(unsigned char *)0,&ucLen);
+                GSM_SetTimeout(ucLen);
+                memset(aucBuff,0,sizeof(aucBuff));
+                break;
+            case EN_TIMEOUT_NO:
+                break;
+            case EN_TIMEOUT_OK:
+                g_gprsCB.timeoutNode.ulTimeout = 0;
+                g_gprsCB.timeoutNode.ucTimeoutFlag = EN_TIMEOUT_INIT;
+
+                if(SUCCESS == Read_Buff(BUFF_NWK,aucBuff,&ucLen))
+                {
+                    for(p = aucBuff;p != NULL;q = strsep((char **)&p,"\r\n"))
+                    {
+                        while(strstripstart(&q,'\r'));
+                        while(strstripstart(&q,'\n'));
+                        GSM_Reponse_Proc((unsigned char *)q,&ucResult);
+                    }
+
+
+                    if(ucResult != EN_RESULT_BUTT)
+                    {
+                        g_gprsCB.ucConnectingStage = EN_STAGE_CIFSR;
+                    }
+                    else
+                    {
+                        g_gprsCB.ucNWKStatus = GPRS_NWK_NO;
+                        g_gprsCB.ucConnectingStage = EN_STAGE_INIT;
+                    }
+                }     
+                break;  
+             default:
+                break;
+        }
+    }
+    else if(EN_STAGE_CIFSR == g_gprsCB.ucConnectingStage)
+    {
+        switch(g_gprsCB.timeoutNode.ucTimeoutFlag)
+        {
+            case EN_TIMEOUT_INIT:
+                GSM_AddReq(GSMDRV_REQUEST_GET_IP,(unsigned char *)0,&ucLen);
+                GSM_SetTimeout(ucLen);
+                memset(aucBuff,0,sizeof(aucBuff));
+                break;
+            case EN_TIMEOUT_NO:
+                break;
+            case EN_TIMEOUT_OK:
+                g_gprsCB.timeoutNode.ulTimeout = 0;
+                g_gprsCB.timeoutNode.ucTimeoutFlag = EN_TIMEOUT_INIT;
+
+                if(SUCCESS == Read_Buff(BUFF_NWK,aucBuff,&ucLen))
+                {
+                    g_gprsCB.ucConnectingStage = EN_STAGE_CIPSTART;
+                } 
+                else
+                {
+                    g_gprsCB.ucNWKStatus = GPRS_NWK_NO;
+                    g_gprsCB.ucConnectingStage = EN_STAGE_INIT;
+                }
+                break;  
+             default:
+                break;
+        }
+    } 
+    else if(EN_STAGE_CIPSTART == g_gprsCB.ucConnectingStage)
+    {
+        switch(g_gprsCB.timeoutNode.ucTimeoutFlag)
+        {
+            case EN_TIMEOUT_INIT:
+                memset(aucBuff,0,sizeof(aucBuff));
+                strcpy(aucBuff,g_gprsCB.aucConnectType);
+                aucBuff[strlen(aucBuff)] = ',';
+                strcat(aucBuff,g_gprsCB.aucIpAddr);
+                aucBuff[strlen(aucBuff)] = ',';
+                strcat(aucBuff,g_gprsCB.aucServerPort);
+                ucLen = strlen(aucBuff);
+                GSM_AddReq(GSMDRV_REQUEST_CREATE_NET_CONNECT,aucBuff,&ucLen);
+                GSM_SetTimeout(ucLen);
+                memset(aucBuff,0,sizeof(aucBuff));
+                break;
+            case EN_TIMEOUT_NO:
+                break;
+            case EN_TIMEOUT_OK:
+                g_gprsCB.timeoutNode.ulTimeout = 0;
+                g_gprsCB.timeoutNode.ucTimeoutFlag = EN_TIMEOUT_INIT;
+
+                if(SUCCESS == Read_Buff(BUFF_NWK,aucBuff,&ucLen))
+                {
+                    for(p = aucBuff;p != NULL;q = strsep((char **)&p,"\r\n"))
+                    {
+                        while(strstripstart(&q,'\r'));
+                        while(strstripstart(&q,'\n'));
+                        GSM_Reponse_Proc((unsigned char *)q,&ucResult);
+                        if(ucResult != EN_RESULT_BUTT)
+                        {
+                            g_gprsCB.ucNWKStatus = GPRS_NWK_NO;
+                            g_gprsCB.ucConnectingStage = EN_STAGE_INIT;
+                        }
+                    }
+                    g_gprsCB.ucConnectingStage = EN_STAGE_CIPSTART;
+                } 
+                
+                if(EN_RESULT_CONNECT == ucResult)
+                {
+                    g_gprsCB.ucConnectingStage = EN_STAGE_INIT;
+                    if(0 == strcmp(g_gprsCB.aucConnectType,"TCP"))
+                    {
+                        g_gprsCB.ucNWKStatus = GPRS_NWK_TCP;
+                        g_gprsCB.tcpPang.ucTCPPangFlag = TRUE;
+                    }
+                    else
+                    {
+                        g_gprsCB.ucNWKStatus = GPRS_NWK_UDP;
+                    }
+                }                    
+                else
+                {
+                    g_gprsCB.ucNWKStatus = GPRS_NWK_NO;
+                    g_gprsCB.ucConnectingStage = EN_STAGE_INIT;
+                }
+
+                break;  
+             default:
+                break;
+        }
+    }    
+    else
+    {
+    }
 }
+
+/*********************************************************************
+** @fn     : 
+**
+** @brief  : 
+**
+** @param  :
+**
+** @return :
+*********************************************************************/
+void GPRS_TCP_Pang(void)
+{
+    u8_t aucBuff[4];
+    aucBuff[0] = 0xAA;
+    aucBuff[1] = 0x55;
+    aucBuff[2] = 0xBB;
+    aucBuff[3] = 0x66;
+    switch(g_gprsCB.tcpPang.timeoutNode.ucTimeoutFlag)
+    {
+        case EN_TIMEOUT_INIT:
+            break;
+        case EN_TIMEOUT_NO:
+            break;
+        case EN_TIMEOUT_OK:
+            g_gprsCB.timeoutNode.ulTimeout = 0;
+            g_gprsCB.timeoutNode.ucTimeoutFlag = EN_TIMEOUT_INIT;
+    
+            UART_Send_MultiString(ROUTER_NWK,aucBuff,4)
+            break;  
+         default:
+            break;
+    }
+}
+
 
 #define __GSM_INTERFACE__
 /*******************************************************************************************
@@ -611,9 +953,28 @@ void GSM_SetTimeout(u32_t usTimeout)
     u32_t usTemp ;
     usTemp = OS_Get_SysTimeTick();
     usTemp += 200;
-    g_TimeoutNode.ulTimeout = usTemp;
-    g_TimeoutNode.ucTimeoutFlag = EN_TIMEOUT_NO;
+    g_gprsCB.timeoutNode.ulTimeout = usTemp;
+    g_gprsCB.timeoutNode.ucTimeoutFlag = EN_TIMEOUT_NO;
 }
+
+/*********************************************************************
+** @fn     : 
+**
+** @brief  : 
+**
+** @param  :
+**
+** @return :
+*********************************************************************/
+void GSM_SetTCPTimeout(u32_t usTimeout)
+{
+    u32_t usTemp ;
+    usTemp = OS_Get_SysTimeTick();
+    usTemp += usTimeout;
+    g_gprsCB.tcpPang.timeoutNode.ulTimeout = usTemp;
+    g_gprsCB.tcpPang.timeoutNode.ucTimeoutFlag = EN_TIMEOUT_NO;
+}
+
 
 /*******************************************************************************************
 @fn     : 
