@@ -8,17 +8,17 @@
      other than as expressly provided by the written license agreement    
      between USC Systems and its licensee.
     
-FileName    : evl_board.c
+FileName    : netframe.c
 Author      : ranwei    
 Version     : 
-Date        : 2014/6/16 19:41:31
+Date        : 2014/6/17 10:02:23
 Description : 
 Others      : 
 *************************************************************************/
 
-#define EVL_BOARD_GLOBAL
+#define NETFRAME_GLOBAL
 
-#include "evl_board.h" 
+#include "netframe.h"
 
 /*********************************************************************
 ** @fn     : 
@@ -29,10 +29,33 @@ Others      :
 **
 ** @return :
 *********************************************************************/
-void EVL_Board_Init(void)
+void NetFrame_Init(void)
 {
-    
+    *ucFrameStructure[0] = 0xAA;
+    *(ucFrameStructure[0]+1) = 0x55;
+    *ucFrameStructure[1] = 0xBB;
+    *(ucFrameStructure[1]+1) = 0x66;   
+    g_ucNETFrameFilter = FALSE;/* initialize the  g_ucNETFrameFilter*/
+    g_ucFrameLen = 0; /* initialize the lenth of frame */
 }
 
+/*********************************************************************
+** @fn     : 
+**
+** @brief  : 
+**
+** @param  :
+**
+** @return :
+*********************************************************************/
+u8_t NETFrame_Filter(u8_t **ppucData,u8_t ucLen)
+{
+    u8_t ucHeadLen = strlen(ucFrameStructure[0]);
+    u8_t ucTailLen = strlen(ucFrameStructure[1]);
+
+
+        
+    return ERRO_FRAME_NONE;
+}
 
 

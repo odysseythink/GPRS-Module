@@ -8,17 +8,17 @@
      other than as expressly provided by the written license agreement    
      between USC Systems and its licensee.
     
-FileName    : evl_board.c
+FileName    : assert.c
 Author      : ranwei    
 Version     : 
-Date        : 2014/6/16 19:41:31
+Date        : 2014/6/18 10:16:37
 Description : 
 Others      : 
 *************************************************************************/
 
-#define EVL_BOARD_GLOBAL
+#define ASSERT_GLOBAL
 
-#include "evl_board.h" 
+#include "assert.h"
 
 /*********************************************************************
 ** @fn     : 
@@ -29,10 +29,30 @@ Others      :
 **
 ** @return :
 *********************************************************************/
-void EVL_Board_Init(void)
+void Sys_Prompt(u32_t ulLine,u8_t *pucFileName,u8_t format,...)
 {
-    
+    u8_t ucLen;
+    u8_t aucBuff[PROMPT_BUFF_SIZE];
+    sprintf(aucBuff,"%s [%d]:",pucFileName,ulLine);
+    ucLen = strlen(aucBuff);
+    sprintf(aucBuff+ucLen,format,...);
+    MyPrint(aucBuff);
 }
 
+/*********************************************************************
+** @fn     : 
+**
+** @brief  : 
+**
+** @param  :
+**
+** @return :
+*********************************************************************/
+void MyPrint(u8_t *pucData)
+{
+#if SYS_DEBUG
+
+#endif
+}
 
 

@@ -8,43 +8,56 @@
      other than as expressly provided by the written license agreement    
      between USC Systems and its licensee.
     
-FileName    : evl_board.h
+FileName    : netframe.h
 Author      : ranwei    
 Version     : 
-Date        : 2014/6/16 19:42:12
+Date        : 2014/6/17 10:02:54
 Description : 
 Others      : 
 *************************************************************************/
-#ifndef __EVL_BOARD_H__
-#define __EVL_BOARD_H__
+#ifndef __NETFRAME_H__
+#define __NETFRAME_H__
 
 #ifdef __cplusplus
 extern "C"{
 #endif
 
-#ifdef EVL_BOARD_GLOBAL
-#define EVL_BOARD_EXT
+#ifdef NETFRAME_GLOBAL
+#define NETFRAME_EXT
 #else
-#define EVL_BOARD_EXT extern 
-#endif
+#define NETFRAME_EXT extern 
+#endif 
 
 /*================================================================*/
 /*                          @INCLUDES                             */
 /*================================================================*/
-#include "includes.h"
+#include "types.h"
 
 /*================================================================*/
 /*                           @MACROS                              */
 /*================================================================*/
+#define ERRO_FRAME_NONE 0
+#define ERRO_FRAME_HEAD 1
+#define ERRO_FRAME_TAIL 2
+#define ERRO_FRAME_LEN  3
 
 /*================================================================*/
 /*                         @TYPEDEFS                              */
 /*================================================================*/
 
 /*================================================================*/
+/*                      @GLOBAL VARIABLES                         */
+/*================================================================*/
+NETFRAME_EXT u8_t* ucFrameStructure[2];
+NETFRAME_EXT bool g_ucNETFrameFilter; /* 是否进行网络帧过滤 */
+NETFRAME_EXT u8_t g_ucFrameLen;/* the length of frame */
+
+
+/*================================================================*/
 /*                           @FUNCS                               */
 /*================================================================*/
-void EVL_Board_Init(void);
+void NetFrame_Init(void);
+u8_t NETFrame_Filter(u8_t **ppucData,u8_t ucLen);
 
 
 #ifdef __cplusplus

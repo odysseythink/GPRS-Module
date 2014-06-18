@@ -8,41 +8,42 @@
      other than as expressly provided by the written license agreement    
      between USC Systems and its licensee.
     
-FileName    : includes.h
+FileName    : mystdio.h
 Author      : ranwei    
 Version     : 
-Date        : 2014/6/16 19:47:11
-Description : 
+Date        : 2014/5/13 20:41:49
+Description : 璇ユā鍧楃敤浜庡畾涔変竴浜沜鏍囧噯搴撳嚱鏁帮紝鍑芥暟鐨勫疄鐜板湪mystdio.h涓?
 Others      : 
 *************************************************************************/
-#ifndef __INCLUDES_H__
-#define __INCLUDES_H__
+#ifndef __MYSTDIO_H__
+#define __MYSTDIO_H__
 
 #ifdef __cplusplus
 extern "C"{
 #endif
 
-#ifdef INCLUDES_GLOBAL
-#define INCLUDES_EXT
-#else
-#define INCLUDES_EXT extern
-#endif
+/*  
+        @define
+*/
 
-/*================================================================*/
-/*                          @INCLUDES                             */
-/*================================================================*/
-#include "evl_board.h"
-#include "gprs.h"
-#include "gps.h"
-#include "it.h"
-#include "buff.h"
-#include "includes.h"
-#include "types.h"
-#include "netframe.h"
-#include "uart.h"
-#include "flash.h"
-#include "systick.h"
-#include "mystdio.h"
+
+/* 重定义一个指针数组类型 */
+//typedef void *va_list[1];
+
+/*  */
+//#define va_start(ap,parmN) (ap[0] = ((char *) &parmN) - 1)
+
+/*
+        @func
+*/
+unsigned char ltos(const unsigned long ulData,char *pucOutput);
+unsigned char IsStrPrefix(char *cStr,char *prefix);
+char *strsep(char **s, const char *ct);
+char *strpbrk(const char *cs, const char *ct);
+unsigned char strstripstart(char **s, const char c);
+
+
+
 
 #ifdef __cplusplus
 }

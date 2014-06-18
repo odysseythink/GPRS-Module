@@ -8,34 +8,40 @@
      other than as expressly provided by the written license agreement    
      between USC Systems and its licensee.
     
-FileName    : evl_board.h
+FileName    : assert.h
 Author      : ranwei    
 Version     : 
-Date        : 2014/6/16 19:42:12
+Date        : 2014/6/18 10:16:43
 Description : 
 Others      : 
 *************************************************************************/
-#ifndef __EVL_BOARD_H__
-#define __EVL_BOARD_H__
+#ifndef __ASSERT_H__
+#define __ASSERT_H__
 
 #ifdef __cplusplus
 extern "C"{
 #endif
 
-#ifdef EVL_BOARD_GLOBAL
-#define EVL_BOARD_EXT
+#ifdef ASSERT_GLOBAL
+#define ASSERT_EXT
 #else
-#define EVL_BOARD_EXT extern 
+#define ASSERT_EXT extern 
 #endif
 
 /*================================================================*/
 /*                          @INCLUDES                             */
 /*================================================================*/
-#include "includes.h"
+#include "types.h"
+#include "string.h"
 
 /*================================================================*/
 /*                           @MACROS                              */
 /*================================================================*/
+#define SYS_DEBUG 0 /* not debug */
+
+#define PROMPT_BUFF_SIZE 100 
+
+
 
 /*================================================================*/
 /*                         @TYPEDEFS                              */
@@ -44,7 +50,9 @@ extern "C"{
 /*================================================================*/
 /*                           @FUNCS                               */
 /*================================================================*/
-void EVL_Board_Init(void);
+extern void Sys_Prompt(u32_t ulLine,u8_t *pucFileName,u8_t format,...);
+
+extern void MyPrint(u8_t *pucData);
 
 
 #ifdef __cplusplus

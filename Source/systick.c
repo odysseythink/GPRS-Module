@@ -8,17 +8,17 @@
      other than as expressly provided by the written license agreement    
      between USC Systems and its licensee.
     
-FileName    : evl_board.c
+FileName    : systick.c
 Author      : ranwei    
 Version     : 
-Date        : 2014/6/16 19:41:31
+Date        : 2014/6/18 15:17:19
 Description : 
 Others      : 
 *************************************************************************/
 
-#define EVL_BOARD_GLOBAL
+#define SYSTICK_GLOBAL
 
-#include "evl_board.h" 
+#include "systick.h" 
 
 /*********************************************************************
 ** @fn     : 
@@ -29,10 +29,37 @@ Others      :
 **
 ** @return :
 *********************************************************************/
-void EVL_Board_Init(void)
+void Systick_Init(void)
 {
-    
+    g_ulSysTick = 0;
 }
 
+/*********************************************************************
+** @fn     : 
+**
+** @brief  : 
+**
+** @param  :
+**
+** @return :
+*********************************************************************/
+void Systick_IRQ_Handler(void)
+{
+    g_ulSysTick++;
+}
+
+/*********************************************************************
+** @fn     : 
+**
+** @brief  : 
+**
+** @param  :
+**
+** @return :
+*********************************************************************/
+u32_t OS_Get_SysTimeTick(void)
+{
+    return g_ulSysTick;     
+}
 
 

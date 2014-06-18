@@ -8,34 +8,38 @@
      other than as expressly provided by the written license agreement    
      between USC Systems and its licensee.
     
-FileName    : evl_board.h
+FileName    : uart.h
 Author      : ranwei    
 Version     : 
-Date        : 2014/6/16 19:42:12
+Date        : 2014/6/17 11:39:40
 Description : 
 Others      : 
 *************************************************************************/
-#ifndef __EVL_BOARD_H__
-#define __EVL_BOARD_H__
+#ifndef __UART_H__
+#define __UART_H__
 
 #ifdef __cplusplus
 extern "C"{
 #endif
 
-#ifdef EVL_BOARD_GLOBAL
-#define EVL_BOARD_EXT
+#ifdef UART_GLOBAL
+#define UART_EXT
 #else
-#define EVL_BOARD_EXT extern 
+#define UART_EXT extern
 #endif
 
 /*================================================================*/
 /*                          @INCLUDES                             */
 /*================================================================*/
-#include "includes.h"
+#include "types.h"
+
 
 /*================================================================*/
 /*                           @MACROS                              */
 /*================================================================*/
+#define UART_1  1
+#define UART_2  2
+#define UART_3  3
 
 /*================================================================*/
 /*                         @TYPEDEFS                              */
@@ -44,7 +48,10 @@ extern "C"{
 /*================================================================*/
 /*                           @FUNCS                               */
 /*================================================================*/
-void EVL_Board_Init(void);
+void UART_Init(void);
+u8_t UART_Send_MultiString(u8_t ucUARTType,u8_t *pucData,u8_t ucLen);
+u8_t UART_Send_OneByte(u8_t ucUARTType,u8_t ucCh);
+
 
 
 #ifdef __cplusplus

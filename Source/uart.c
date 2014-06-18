@@ -8,17 +8,17 @@
      other than as expressly provided by the written license agreement    
      between USC Systems and its licensee.
     
-FileName    : gps.c
+FileName    : uart.c
 Author      : ranwei    
 Version     : 
-Date        : 2014/6/16 19:38:28
+Date        : 2014/6/17 11:39:33
 Description : 
 Others      : 
 *************************************************************************/
 
-#define GPS_GLOBAL
+#define UART_GLOBAL
 
-#include "gps.h" 
+#include "uart.h"
 
 /*********************************************************************
 ** @fn     : 
@@ -29,8 +29,9 @@ Others      :
 **
 ** @return :
 *********************************************************************/
-void GPS_Init(void)
+void UART_Init(void)
 {
+    
 }
 
 /*********************************************************************
@@ -42,14 +43,40 @@ void GPS_Init(void)
 **
 ** @return :
 *********************************************************************/
-u8_t Get_GPS_Info(GPS_Info_t *pData)
+u8_t UART_Send_MultiString(u8_t ucUARTType,u8_t *pucData,u8_t ucLen)
 {
-    GPS_Info_t gpsInfo;
-    memset(gpsInfo,0,sizeof(gpsInfo));
-
-    *pData = gpsInfo;
-    return 0;
+    if(UART_1 == ucUARTType)
+    {
+       return ; 
+    }
+    if(UART_2 == ucUARTType)
+    {
+        return;
+    }
 }
+
+/*********************************************************************
+** @fn     : 
+**
+** @brief  : 
+**
+** @param  :
+**
+** @return :
+*********************************************************************/
+u8_t UART_Send_OneByte(u8_t ucUARTType,u8_t ucCh)
+{
+    if(UART_1 == ucUARTType)
+    {
+       return TRUE; 
+    }
+    if(UART_2 == ucUARTType)
+    {
+        return TRUE;
+    }    
+    return FALSE;
+}
+
 
 
 

@@ -8,43 +8,54 @@
      other than as expressly provided by the written license agreement    
      between USC Systems and its licensee.
     
-FileName    : evl_board.h
+FileName    : systick.h
 Author      : ranwei    
 Version     : 
-Date        : 2014/6/16 19:42:12
+Date        : 2014/6/18 15:17:51
 Description : 
 Others      : 
 *************************************************************************/
-#ifndef __EVL_BOARD_H__
-#define __EVL_BOARD_H__
+#ifndef __SYSTICK_H__
+#define __SYSTICK_H__
 
 #ifdef __cplusplus
 extern "C"{
 #endif
 
-#ifdef EVL_BOARD_GLOBAL
-#define EVL_BOARD_EXT
+#ifdef SYSTICK_GLOBAL
+#define SYSTICK_EXT
 #else
-#define EVL_BOARD_EXT extern 
+#define SYSTICK_EXT extern 
 #endif
 
 /*================================================================*/
 /*                          @INCLUDES                             */
 /*================================================================*/
-#include "includes.h"
+#include "types.h"
 
 /*================================================================*/
 /*                           @MACROS                              */
 /*================================================================*/
+
+
 
 /*================================================================*/
 /*                         @TYPEDEFS                              */
 /*================================================================*/
 
 /*================================================================*/
+/*                      @GLOBAL VARIABLES                         */
+/*================================================================*/
+SYSTICK_EXT u32_t g_ulSysTick;
+
+
+/*================================================================*/
 /*                           @FUNCS                               */
 /*================================================================*/
-void EVL_Board_Init(void);
+void Systick_Init(void);
+void Systick_IRQ_Handler(void);
+u32_t OS_Get_SysTimeTick(void);
+
 
 
 #ifdef __cplusplus

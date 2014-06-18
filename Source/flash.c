@@ -8,17 +8,18 @@
      other than as expressly provided by the written license agreement    
      between USC Systems and its licensee.
     
-FileName    : evl_board.c
+FileName    : flash.c
 Author      : ranwei    
 Version     : 
-Date        : 2014/6/16 19:41:31
+Date        : 2014/6/18 15:04:54
 Description : 
 Others      : 
 *************************************************************************/
 
-#define EVL_BOARD_GLOBAL
+#define FLASH_GLOBAL
 
-#include "evl_board.h" 
+#include "flash.h"
+
 
 /*********************************************************************
 ** @fn     : 
@@ -29,10 +30,8 @@ Others      :
 **
 ** @return :
 *********************************************************************/
-void EVL_Board_Init(void)
+void Flash_Save(u32_t addr,u8_t *pucData,u16_t ucLen)
 {
-    
 }
-
 
 

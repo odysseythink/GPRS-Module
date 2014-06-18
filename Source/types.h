@@ -8,43 +8,45 @@
      other than as expressly provided by the written license agreement    
      between USC Systems and its licensee.
     
-FileName    : evl_board.h
+FileName    : types.h
 Author      : ranwei    
 Version     : 
-Date        : 2014/6/16 19:42:12
+Date        : 2014/6/17 9:54:14
 Description : 
 Others      : 
 *************************************************************************/
-#ifndef __EVL_BOARD_H__
-#define __EVL_BOARD_H__
+#ifndef __TYPES_H__
+#define __TYPES_H__
 
 #ifdef __cplusplus
 extern "C"{
 #endif
 
-#ifdef EVL_BOARD_GLOBAL
-#define EVL_BOARD_EXT
+#ifdef TYPES_GLOBAL
+#define TYPES_EXT
 #else
-#define EVL_BOARD_EXT extern 
+#define TYPES_EXT extern
 #endif
 
-/*================================================================*/
-/*                          @INCLUDES                             */
-/*================================================================*/
-#include "includes.h"
 
 /*================================================================*/
 /*                           @MACROS                              */
 /*================================================================*/
+#define TRUE    1
+#define FALSE   0
+
+#define SUCCESS 1
+#define FAILURE 0
 
 /*================================================================*/
 /*                         @TYPEDEFS                              */
 /*================================================================*/
+typedef unsigned char u8_t;
+typedef unsigned short u16_t;
+typedef unsigned long u32_t;
 
-/*================================================================*/
-/*                           @FUNCS                               */
-/*================================================================*/
-void EVL_Board_Init(void);
+typedef unsigned char bool;
+
 
 
 #ifdef __cplusplus

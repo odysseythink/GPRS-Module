@@ -8,34 +8,35 @@
      other than as expressly provided by the written license agreement    
      between USC Systems and its licensee.
     
-FileName    : evl_board.h
+FileName    : flash.h
 Author      : ranwei    
 Version     : 
-Date        : 2014/6/16 19:42:12
+Date        : 2014/6/18 15:04:59
 Description : 
 Others      : 
 *************************************************************************/
-#ifndef __EVL_BOARD_H__
-#define __EVL_BOARD_H__
+#ifndef __FLASH_H__
+#define __FLASH_H__
 
 #ifdef __cplusplus
 extern "C"{
 #endif
 
-#ifdef EVL_BOARD_GLOBAL
-#define EVL_BOARD_EXT
-#else
-#define EVL_BOARD_EXT extern 
+#ifdef FLASH_GLOBAL
+#define FLASH_EXT
+#else 
+#define FLASH_EXT extern 
 #endif
 
 /*================================================================*/
 /*                          @INCLUDES                             */
 /*================================================================*/
-#include "includes.h"
+#include "types.h"
 
 /*================================================================*/
 /*                           @MACROS                              */
 /*================================================================*/
+#define FLASH_NET_ADDR
 
 /*================================================================*/
 /*                         @TYPEDEFS                              */
@@ -44,7 +45,7 @@ extern "C"{
 /*================================================================*/
 /*                           @FUNCS                               */
 /*================================================================*/
-void EVL_Board_Init(void);
+void Flash_Save(u32_t addr,u8_t *pucData,u16_t ucLen);
 
 
 #ifdef __cplusplus
